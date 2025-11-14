@@ -1,0 +1,354 @@
+MBG Application Analysis Document
+
+(Free Nutritious Meal Distribution System for Students)
+
+1. Overview
+
+The MBG application is designed to support the government’s Free Nutritious Meal program in schools. The system manages:
+
+Meal distribution tracking
+
+Tray collection and return
+
+Verification by on-duty staff
+
+Notifications and time-bound reminders
+
+The application includes two main user roles: Students and On-Duty Staff, with optional Admin access for school management.
+
+2. Objectives
+
+Ensure the distribution of meals aligns with the actual number of present students.
+
+Provide transparent and verifiable records of meal pickup and tray return.
+
+Reduce waste and improve accountability within the MBG distribution process.
+
+Automate notifications to remind students of tray return deadlines.
+
+Facilitate digital documentation for the school and government reporting.
+
+3. System Environment
+3.1 Frontend
+
+Web-based responsive interface (recommended: React, Vue, or lightweight SPA).
+
+PWA support for mobile usage on student and staff devices.
+
+3.2 Backend
+
+Python-based API
+Recommended frameworks:
+
+FastAPI (high performance, async, automatic documentation)
+
+Django REST Framework (more complete ecosystem)
+
+3.3 Database
+
+PostgreSQL for production
+
+SQLite for development or small-scale deployments
+
+3.4 File Storage
+
+Local server storage for prototype
+
+Cloud storage (S3, DigitalOcean Spaces) for scalability
+
+3.5 Notifications
+
+Web Push API (via PWA)
+
+Optional SMS/WhatsApp gateway
+
+In-app notifications with scheduled background tasks
+
+3.6 Deployment
+
+VPS or school-hosted server
+
+Containerization using Docker recommended
+
+3.7 Security
+
+HTTPS enabled
+
+JWT or session-based authentication
+
+Role-based access control (student, staff, admin)
+
+4. System Flow (End-to-End)
+4.1 Login & Initialization
+
+Students and staff log in using credentials provided by the school.
+
+Admin registers classes, students, and assigns on-duty staff.
+
+4.2 Attendance Submission
+
+Teachers or class leaders submit attendance data in the morning.
+
+The system calculates the total number of present students.
+
+Attendance summary is automatically sent to the on-duty staff.
+
+4.3 Meal Arrival Confirmation
+
+When MBG arrives, on-duty staff mark the status as “MBG Arrived” in the system.
+
+This triggers a notification to all students in the class.
+
+4.4 Meal Pickup
+
+Students go to the designated distribution area.
+
+After receiving their tray/meal, students open the MBG app and press “Confirm Pickup”.
+
+The system logs:
+
+Student ID
+
+Time of pickup
+
+On-duty staff review the pickup list.
+
+Staff confirm each pickup by taking a photo of the tray (or the stack of trays) and approving the entry.
+
+4.5 Tray Return
+
+A return deadline is set (e.g., 2 hours after distribution).
+
+Students receive automated notifications reminding them to return trays.
+
+Students press “Confirm Return” when they return their tray.
+
+Staff verify returns by uploading a confirmation photo and approving the return.
+
+4.6 Reporting & Monitoring
+
+Daily report includes:
+
+Present students
+
+Pickup and return logs
+
+Photos for verification
+
+Overdue or missing trays
+
+Admin can export reports for documentation or audits.
+
+5. Core Features
+5.1 User Roles
+Role	Capabilities
+Student	Confirm pickup, confirm return, receive notifications
+On-duty Staff	View attendance summary, confirm meal arrival, verify pickup/return with photos
+Admin	Manage users, classes, reports
+5.2 Additional Key Features
+
+Attendance integration
+
+Pickup & return confirmation
+
+Staff verification via photo
+
+Real-time notifications
+
+Time-based tray return reminders
+
+Audit logging
+
+Daily and monthly reporting
+
+6. Data Model (Core Entities)
+6.1 User
+
+id
+
+name
+
+role (student/staff/admin)
+
+username
+
+password hash
+
+class_id (for students)
+
+6.2 Class
+
+id
+
+class name
+
+assigned teacher
+
+6.3 Attendance
+
+id
+
+class_id
+
+date
+
+list of present student IDs
+
+6.4 Distribution
+
+id
+
+attendance_id
+
+status (pending, arrived, distributed)
+
+expected_count
+
+6.5 PickupRecord
+
+id
+
+student_id
+
+distribution_id
+
+pickup_time
+
+status (pending, verified)
+
+photo_url (staff verification)
+
+6.6 ReturnRecord
+
+id
+
+pickup_id
+
+return_time
+
+status
+
+photo_url
+
+6.7 Notification
+
+id
+
+user_id
+
+message
+
+scheduled_time
+
+read_status
+
+6.8 AuditLog
+
+action
+
+user_id
+
+timestamp
+
+metadata
+
+7. Notifications & Time Management
+
+Automatic reminders before the return deadline
+
+Overdue alerts for students who have not returned trays
+
+Notification types:
+
+MBG arrived
+
+Pickup pending
+
+Tray return reminder
+
+Overdue return
+
+8. Security Considerations
+
+All communication encrypted (HTTPS)
+
+Strong password hashing
+
+Photo metadata handling to prevent manipulation
+
+Option to avoid capturing student faces for privacy
+
+9. System Assumptions & Constraints
+
+Students must have access to a smartphone or shared device
+
+Internet connection is required, but offline caching for pickup may be added
+
+Photos stored securely to avoid misuse
+
+User identity validation must be handled by the school (account creation)
+
+10. Risks and Mitigation
+Risk	Mitigation
+Students forget to return trays	Automated reminders
+Fake confirmations	Mandatory staff photo verification
+Poor network connection	Offline-first approach for basic actions
+Privacy concerns	Allow capturing tray-only photos
+11. Suggested Implementation Roadmap
+Phase 1: MVP
+
+Login & role-based access
+
+Attendance input
+
+Meal arrival confirmation
+
+Pickup & return with timestamps
+
+Photo verification
+
+Basic reporting
+
+Phase 2: Improvements
+
+Push notifications (Web Push / PWA)
+
+Offline mode
+
+QR code-based verification
+
+Dashboard analytics
+
+Integration with school systems
+
+12. API Endpoint Samples (High-level)
+
+POST /auth/login
+
+GET /attendance/today/{class_id}
+
+POST /distribution/{id}/arrived
+
+POST /pickup/{student_id}
+
+POST /pickup/{id}/verify
+
+POST /return/{id}
+
+POST /return/{id}/verify
+
+GET /report/daily
+
+13. Key Performance Indicators (KPIs)
+
+Return rate of trays
+
+Average return time
+
+Number of unverified pickups/returns
+
+Notification delivery/open rates
+
+14. Conclusion
+
+The MBG Application ensures a reliable, efficient, and transparent distribution process for the Free Nutritious Meal program. With clear flows for pickup and return, verification by staff, and a solid notification system, the system improves accountability and reduces tray loss while simplifying reporting for school administration.
