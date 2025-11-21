@@ -1,0 +1,281 @@
+1. Ringkasan singkat (Overview)
+
+Aplikasi MBG memfasilitasi proses pembagian makanan bergizi di sekolah: absen siswa → data hadir dikirim ke petugas piket → MBG datang → siswa ambil tray → siswa konfirmasi ambil → petugas memverifikasi dengan foto → notifikasi tenggat pengembalian → siswa konfirmasi pengembalian → petugas verifikasi kembali. Sistem punya dua peran utama: Siswa dan Petugas Piket (plus admin sekolah untuk pengaturan).
+
+2. Tujuan (Goals)
+
+Memastikan distribusi MBG sesuai jumlah siswa hadir, mengurangi pemborosan.
+
+Menyediakan bukti proses distribusi (foto verifikasi) untuk akuntabilitas.
+
+Mengingatkan siswa untuk mengembalikan tray tepat waktu.
+
+Menyederhanakan pencatatan (log) kedatangan, pengambilan, dan pengembalian.
+
+Menyediakan antarmuka aman untuk petugas dan siswa.
+
+3. Environment / Tech Stack (rekomendasi)
+
+Pilihan disesuaikan agar mudah di-deploy di sekolah yang punya sumber daya terbatas.
+
+Frontend
+
+Web responsive (React atau Vue) + PWA agar bisa diakses via browser HP.
+
+Alternatif ringan: Single-page app sederhana (vanilla JS) jika sumber daya terbatas.
+
+Backend
+
+Python (keahlian utama) → FastAPI (REST) atau Django REST Framework.
+FastAPI bagus untuk API cepat, asynchronous, dokumentasi otomatis.
+
+Database
+
+PostgreSQL (produksi) / SQLite (MVP atau dev).
+
+Storage file (foto)
+
+Local storage di server (awal) atau cloud storage (S3 / DigitalOcean Spaces) jika akan skala.
+
+Autentikasi
+
+JWT untuk mobile/web token-based, atau session cookies kalau hanya web internal.
+
+Notifikasi
+
+Push notifications via Web Push (PWA) atau SMS/WhatsApp gateway untuk jangkauan lebih luas.
+
+Alternatif: notifikasi in-app + email (jika sekolah pakai email).
+
+Hosting / Deployment
+
+Server VPS sederhana (contoh: DigitalOcean) atau hosting sekolah.
+
+Containerisasi dengan Docker direkomendasikan.
+
+Dev tools
+
+Git, CI (GitHub Actions), environment staging.
+
+4. Flow (alur rinci langkah demi langkah)
+A. Setup & Login
+
+Admin/Operator meng-input daftar siswa (nama, NIS, kelas, nomor hp/email opsional) dan buat akun petugas piket.
+
+Siswa & petugas punya akun, login via username/password atau SSO sekolah.
+
+B. Absensi pagi (oleh guru)
+
+Guru/kelas melakukan absen (bisa via scan QR kelas, manual, atau daftar hadir).
+
+Sistem menghitung jumlah siswa hadir dan mengirim ringkasan ke petugas piket (notifikasi).
+
+C. Konfirmasi Pengiriman MBG
+
+Petugas piket menerima notifikasi “MBG akan dikirim” atau melihat jumlah hadir.
+
+Setelah MBG dikirim/terkirim ke sekolah (opsional), petugas menandai status “MBG datang”.
+
+D. Pengambilan tray oleh siswa
+
+Siswa yang hadir turun dan mengambil tray sesuai nama/nomor.
+
+Setelah mengambil, siswa membuka aplikasi → ke daftar “Ambil MBG” → klik Konfirmasi Ambil.
+
+Sistem merekam waktu, lokasi (opsional), dan menampilkan instruksi.
+
+Petugas melihat daftar konfirmasi ambil. Untuk validasi: petugas memfoto tray (atau memfoto siswa dengan tray — kebijakan privasi perlu diperhatikan) dan meng-approve tiap entri. Foto disimpan sebagai bukti.
+
+E. Pengembalian tray
+
+Ada batas waktu pengembalian (mis. 2 jam setelah pembagian). Aplikasi mengirim notifikasi pengingat ke siswa yang belum mengembalikan.
+
+Saat mengembalikan, siswa klik Konfirmasi Kembali di app. Waktu & foto (opsional) dicatat.
+
+Petugas memverifikasi pengembalian (memfoto setumpuk tray yang dikembalikan atau tanda terima) dan menandai selesai.
+
+F. Audit / Laporan
+
+Admin/pihak sekolah dapat melihat laporan harian: jumlah hadir, jumlah tray terambil, jumlah tray dikembalikan, foto verifikasi, keterlambatan, siswa yang tidak mengembalikan, dsb.
+
+5. Data model (entitas utama)
+
+User: id, nama, role (siswa/piket/admin), username, password_hash, kelas, kontak.
+
+Kelas: id, nama, wali_kelas.
+
+Absensi: id, kelas_id, tanggal, hadir_list (relasi ke User), created_by.
+
+Distribusi: id, absensi_id, status (pending, datang, dibagikan), jumlah_mbg.
+
+AmbilRecord: id, distribusi_id, user_id, waktu_ambil, status (pending, confirmed_by_piket), foto_ambil_url.
+
+KembaliRecord: id, ambilrecord_id, waktu_kembali, status, foto_kembali_url.
+
+Notifikasi: id, user_id, type, message, read, scheduled_time.
+
+AuditLog: action, user_id, timestamp, meta.
+
+6. Use cases / User stories singkat
+
+Sebagai guru, saya ingin melakukan absen sehingga petugas tahu jumlah yang hadir.
+
+Sebagai petugas, saya ingin melihat ringkasan hadir dan mengonfirmasi MBG datang.
+
+Sebagai siswa, saya ingin mengonfirmasi ambil dan mengonfirmasi pengembalian tray.
+
+Sebagai petugas, saya ingin memverifikasi dengan foto sehingga ada bukti.
+
+Sebagai admin, saya ingin laporan harian.
+
+7. Notifikasi & Batas Waktu
+
+Notifikasi push/in-app: saat absen selesai, MBG datang, pengingat pengembalian 1 jam/30 menit sebelum tenggat, notifikasi overdue.
+
+Batas waktu pengembalian configurable per distribusi (mis. 2 jam / 4 jam).
+
+Sistem menghitung daftar overdue dan menandai untuk tindakan (peringatan wali kelas).
+
+8. Validasi Foto & Proses Verifikasi
+
+Foto minimal: ukuran dan metadata (timestamp).
+
+Otomatis: cek metadata EXIF timestamp vs sistem untuk mendeteksi manipulasi sederhana.
+
+Manual: petugas pake app untuk mengambil foto langsung (lebih aman daripada upload foto dari galeri).
+
+Opsional: small watermark/delivery-id overlay pada foto saat di-unggah untuk bukti.
+
+9. Hak akses & Keamanan
+
+Autentikasi kuat (password hash + rate limiting).
+
+Role-based access control: siswa hanya bisa melihat rekamannya, petugas bisa approve, admin bisa lihat semua.
+
+Enkripsi saat transit (HTTPS) dan at-rest untuk foto bila memungkinkan.
+
+Privacy: jika foto siswa diperlukan, harus ada kebijakan persetujuan orang tua; alternatif: foto tray tanpa wajah.
+
+10. UX / UI considerations
+
+Antarmuka mobile-first; tombol besar untuk konfirmasi.
+
+Daftar hadir & tombol konfirmasi berada di front page siswa.
+
+Untuk petugas: tampilan “Queue” yang menunjukkan entri yang harus diverifikasi cepat.
+
+Indikator waktu tersisa untuk pengembalian tray di tiap entri siswa.
+
+11. Edge cases & error handling
+
+Siswa konfirmasi tapi petugas belum verifikasi → muncul status “menunggu”.
+
+Konfirmasi ganda / koneksi terputus → implement idempotency pada API.
+
+Foto tidak tersedia / gagal upload → fallback: catat waktu & minta foto ulang.
+
+Kehilangan tray / tidak kembalikan → flag untuk tindakan (wali kelas / orang tua).
+
+12. Monitoring & Logging
+
+Simpan logs aksi (AuditLog) untuk audit.
+
+Metrics: jumlah distribusi, rasio pengembalian, rata-rata keterlambatan.
+
+Alert jika rasio pengembalian turun drastis.
+
+13. Testing
+
+Unit test backend (API endpoints dan business logic).
+
+Integration test (absensi → distribusi → ambil → verifikasi → pengembalian).
+
+UAT dengan skenario lapangan: koneksi seluler lemah, foto buram, siswa tanpa smartphone.
+
+14. MVP (Minimal Viable Product) — rekomendasi prioritas fitur
+
+MVP core
+
+Login (siswa & petugas)
+
+Input absen & ringkasan hadir
+
+Petugas menandai MBG datang
+
+Siswa konfirmasi ambil (waktu tercatat)
+
+Petugas verifikasi ambil dengan upload foto
+
+Pengingat pengembalian & siswa konfirmasi pengembalian
+
+Petugas verifikasi pengembalian
+
+Laporan sederhana
+
+Fitur di fase berikutnya
+
+PWA push notifications, scan QR untuk absensi, EXIF/photo watermarking, integrasi SMS/WhatsApp, analytics dashboard.
+
+15. Integrasi API & Endpoint contoh (ringkas)
+
+POST /api/login → return JWT
+
+GET /api/classes/{id}/attendance/today → daftar hadir
+
+POST /api/attendance/{id}/confirm-distribution → petugas menandai MBG datang
+
+POST /api/distribution/{id}/take → siswa konfirmasi ambil (body: user_id)
+
+POST /api/ambil/{id}/photo → upload foto verifikasi (petugas)
+
+POST /api/ambil/{id}/return → siswa konfirmasi kembali
+
+POST /api/return/{id}/photo → upload foto verifikasi pengembalian
+
+GET /api/reports/daily?date=YYYY-MM-DD → laporan
+
+16. Risiko & rekomendasi mitigasi
+
+Privasi foto siswa → gunakan foto tray tanpa wajah atau minta izin orang tua.
+
+Kecurangan (konfirmasi oleh siswa yg tak hadir) → idealnya hubungkan absensi yang sudah diverifikasi guru; gunakan QR code pembagian per siswa.
+
+Keterbatasan device → buat UI ringan, offline-friendly (cache konfirmasi dan sync saat online).
+
+Krisis skala → mulai dengan local server/SQLite lalu migrasi ke Postgres dan object storage.
+
+17. Rencana deliverable & langkah implementasi cepat (contoh roadmap singkat)
+
+Spesifikasi & desain DB (1–2 hari)
+
+Backend minimal (auth + endpoints absen/distribusi/ambil) (4–7 hari)
+
+Frontend sederhana (siswa + petugas) (4–7 hari)
+
+Integrasi foto & notifikasi (3–5 hari)
+
+Testing lapangan & perbaikan (3–5 hari)
+
+Deployment & training petugas (1–2 hari)
+
+(ini roadmap indikatif — paling cepat untuk MVP; sesuaikan dengan tim dan resource sekolah)
+
+18. Lampiran singkat: KPI yang bisa dipantau
+
+Persentase pengembalian tray per hari.
+
+Waktu rata-rata pengembalian.
+
+Jumlah kasus tanpa verifikasi foto.
+
+Jumlah notifikasi yang dikirim & dibuka (engagement).
+
+Kalau mau, saya bisa lanjutkan dengan:
+
+Diagram sequence flow (textual / gambar),
+
+Skema database SQL lengkap, atau
+
+Contoh implementasi endpoint backend (FastAPI) + contoh model DB dan unit test.
+
+Mau dilanjut ke mana? Saya bisa langsung buat skema DB atau contoh kode backend (FastAPI + SQLAlchemy) yang lengkap dan saya jelaskan setiap bagian baris-per-baris.
