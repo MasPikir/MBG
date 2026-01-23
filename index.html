@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Website Pikir</title>
+
+    <!-- CSS INTERNAL -->
+    <style>
+        /* Reset dasar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        nav h1 {
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: #ffd369;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            text-align: center;
+            animation: fadeIn 1.5s ease-in;
+        }
+
+        .hero h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .hero span {
+            color: #ffd369;
+        }
+
+        .hero p {
+            max-width: 600px;
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero button {
+            padding: 15px 35px;
+            font-size: 16px;
+            border: none;
+            border-radius: 30px;
+            background: #ffd369;
+            color: #1e3c72;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .hero button:hover {
+            transform: scale(1.1);
+            background: white;
+        }
+
+        /* Card Section */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 40px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255,255,255,0.2);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: #ffd369;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            font-size: 14px;
+        }
+
+        /* Animasi */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav>
+        <h1>PIKIR</h1>
+        <div>
+            <a href="#">Home</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <h2><span>INI WEBSITE PIKIR</span></h2>
+        <p>
+            Website ini dibuat menggunakan HTML dan CSS internal.
+            Cocok untuk tugas RPL dan siap di-hosting ke GitHub Pages.
+        </p>
+        <button onclick="alert('Halo dari Website Pikir! 🚀')">
+            Klik Aku
+        </button>
+    </section>
+
+    <!-- CARD SECTION -->
+    <section class="cards">
+        <div class="card">
+            <h3>Modern</h3>
+            <p>Tampilan clean dengan gradient dan animasi.</p>
+        </div>
+        <div class="card">
+            <h3>Interaktif</h3>
+            <p>Hover effect dan tombol responsif.</p>
+        </div>
+        <div class="card">
+            <h3>GitHub Pages</h3>
+            <p>Siap langsung di-upload dan online.</p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        © 2026 | Website Pikir | RPL SMK
+    </footer>
+
+</body>
+</html>
